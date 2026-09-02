@@ -1,0 +1,2271 @@
+<!doctype html>
+
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>SpotData - Audiência Musical</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            background: #11131a;
+
+            color: #f5f6fa;
+
+            margin: 0;
+
+            padding: 32px;
+
+        }
+
+
+        .container {
+
+            max-width: 1400px;
+
+            margin: auto;
+
+        }
+
+
+        h1 {
+
+            font-size: 40px;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        h2 {
+
+            margin-top: 40px;
+
+        }
+
+
+        .subtitle {
+
+            color: #b8bfd1;
+
+            margin-bottom: 24px;
+
+        }
+
+
+        /* =================================================
+           USUÁRIO
+        ================================================= */
+
+        .user-area {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 12px;
+
+            align-items: center;
+
+            background: #1c2030;
+
+            padding: 16px;
+
+            border-radius: 16px;
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .user-box {
+
+            display: flex;
+
+            gap: 8px;
+
+            align-items: center;
+
+            font-weight: 600;
+
+        }
+
+
+        input {
+
+            border: 0;
+
+            border-radius: 999px;
+
+            padding: 10px 16px;
+
+            background: #2a3044;
+
+            color: white;
+
+            outline: none;
+
+        }
+
+
+        button {
+
+            border: 0;
+
+            border-radius: 999px;
+
+            padding: 9px 13px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+        }
+
+
+        button:hover {
+
+            opacity: .85;
+
+        }
+
+
+        /* =================================================
+           BUSCA
+        ================================================= */
+
+        .search-area {
+
+            margin: 30px 0;
+
+        }
+
+
+        .search-area input {
+
+            width: min(
+                100%,
+                500px
+            );
+
+        }
+
+
+        /* =================================================
+           GRID
+        ================================================= */
+
+        .grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(260px, 1fr)
+                );
+
+            gap: 16px;
+
+        }
+
+
+        /* =================================================
+           CARD
+        ================================================= */
+
+        .card {
+
+            background: #1c2030;
+
+            padding: 18px;
+
+            border-radius: 16px;
+
+            transition:
+                transform .15s ease;
+
+        }
+
+
+        .card:hover {
+
+            transform:
+                translateY(-3px);
+
+        }
+
+
+        .track-name {
+
+            font-size: 17px;
+
+            font-weight: 700;
+
+            margin-bottom: 6px;
+
+        }
+
+
+        .artist {
+
+            color: #b8bfd1;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .metadata {
+
+            font-size: 13px;
+
+            color: #8f98ad;
+
+        }
+
+
+        .score {
+
+            margin-top: 8px;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+        }
+
+
+        .buttons {
+
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 8px;
+
+            margin-top: 14px;
+
+        }
+
+
+        .play {
+
+            background: #d7e3ff;
+
+        }
+
+
+        .like {
+
+            background: #93e7d5;
+
+        }
+
+
+        .save {
+
+            background: #b8a7ff;
+
+        }
+
+
+        .skip {
+
+            background: #ffdfa6;
+
+        }
+
+
+        .dislike {
+
+            background: #ffb2c8;
+
+        }
+
+
+        /* =================================================
+           STATUS
+        ================================================= */
+
+        .status {
+
+            padding: 12px 16px;
+
+            background: #161a26;
+
+            border-radius: 12px;
+
+            color: #aab2c5;
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .empty {
+
+            color: #8f98ad;
+
+            padding: 18px 0;
+
+        }
+
+
+        .error {
+
+            color: #ffb2c8;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- =================================================
+         CABEÇALHO
+    ================================================== -->
+
+    <h1>
+        Audiência → Dados → Recomendação
+    </h1>
+
+    <p class="subtitle">
+
+        Interaja com as músicas.
+
+        Suas escolhas são registradas
+        e utilizadas para reconstruir
+        o ranking personalizado.
+
+    </p>
+
+
+
+    <!-- =================================================
+         USUÁRIO
+    ================================================== -->
+
+    <section class="user-area">
+
+        <div class="user-box">
+
+            <span>👤</span>
+
+            <span id="current-user">
+                Carregando usuário...
+            </span>
+
+        </div>
+
+
+        <input
+            id="user-name"
+            type="text"
+            placeholder="Criar novo perfil com nome"
+        >
+
+
+        <button
+            onclick="createNamedUser()"
+        >
+            Novo perfil
+        </button>
+
+
+        <button
+            onclick="resetUser()"
+        >
+            Trocar visitante
+        </button>
+
+    </section>
+
+
+
+    <!-- =================================================
+         STATUS
+    ================================================== -->
+
+    <div
+        id="stats"
+        class="status"
+    >
+        Inicializando aplicação...
+    </div>
+
+
+
+    <!-- =================================================
+         BUSCA
+    ================================================== -->
+
+    <section class="search-area">
+
+        <input
+            id="search-input"
+            type="search"
+            placeholder="Buscar música ou artista..."
+            oninput="handleSearch(this.value)"
+        >
+
+    </section>
+
+
+    <section
+        id="search-section"
+        hidden
+    >
+
+        <h2>
+            🔎 Resultados da busca
+        </h2>
+
+        <p
+            id="search-sub"
+            class="subtitle"
+        >
+        </p>
+
+        <div
+            id="search-results"
+            class="grid"
+        >
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         CATÁLOGO
+    ================================================== -->
+
+    <section>
+
+        <h2>
+            🎵 Explorar catálogo
+        </h2>
+
+        <p class="subtitle">
+
+            Faixas iniciais usadas para
+            explorar e começar a formar
+            seu perfil.
+
+        </p>
+
+        <div
+            id="catalog"
+            class="grid"
+        >
+        </div>
+
+    </section>
+
+
+
+    <!-- =================================================
+         RECOMENDAÇÕES
+    ================================================== -->
+
+    <section>
+
+        <h2>
+            🎯 Para você
+        </h2>
+
+        <p
+            id="personal-sub"
+            class="subtitle"
+        >
+
+            Interaja com algumas músicas
+            para formar seu perfil.
+
+        </p>
+
+        <div
+            id="recommendations"
+            class="grid"
+        >
+        </div>
+
+    </section>
+
+
+</div>
+
+
+
+<script>
+
+
+// =========================================================
+// 1. CONFIGURAÇÃO
+// =========================================================
+
+
+const USER_KEY =
+    "spotdata_user_id";
+
+
+let currentUserId =
+    localStorage.getItem(
+        USER_KEY
+    );
+
+
+let currentUser = null;
+
+
+let searchTimer = null;
+
+
+
+// =========================================================
+// 2. FUNÇÕES AUXILIARES
+// =========================================================
+
+
+function escapeHtml(value) {
+
+    return String(
+        value ?? ""
+    )
+
+    .replaceAll(
+        "&",
+        "&amp;"
+    )
+
+    .replaceAll(
+        "<",
+        "&lt;"
+    )
+
+    .replaceAll(
+        ">",
+        "&gt;"
+    )
+
+    .replaceAll(
+        '"',
+        "&quot;"
+    )
+
+    .replaceAll(
+        "'",
+        "&#039;"
+    );
+
+}
+
+
+
+// =========================================================
+// 3. USUÁRIO
+// =========================================================
+
+
+async function ensureUser() {
+
+
+    // -----------------------------------------------------
+    // Já existe ID no navegador
+    // -----------------------------------------------------
+
+    if (currentUserId) {
+
+        try {
+
+            const response =
+                await fetch(
+                    `/api/users/${currentUserId}`
+                );
+
+
+            if (response.ok) {
+
+                currentUser =
+                    await response.json();
+
+
+                renderCurrentUser();
+
+
+                return currentUserId;
+
+            }
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Erro ao consultar usuário:",
+                error
+            );
+
+        }
+
+
+        // O localStorage aponta para um usuário
+        // que não existe mais no banco.
+
+        localStorage.removeItem(
+            USER_KEY
+        );
+
+
+        currentUserId = null;
+
+        currentUser = null;
+
+    }
+
+
+
+    // -----------------------------------------------------
+    // Criar visitante automático
+    // -----------------------------------------------------
+
+    const response =
+        await fetch(
+            "/api/users",
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body:
+                    JSON.stringify({
+
+                        display_name:
+                            "Visitante"
+
+                    })
+
+            }
+        );
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            "Não foi possível criar usuário."
+        );
+
+    }
+
+
+    currentUser =
+        await response.json();
+
+
+    currentUserId =
+        currentUser.user_id;
+
+
+    localStorage.setItem(
+        USER_KEY,
+        currentUserId
+    );
+
+
+    renderCurrentUser();
+
+
+    return currentUserId;
+
+}
+
+
+
+// =========================================================
+// 4. MOSTRAR USUÁRIO
+// =========================================================
+
+
+function renderCurrentUser() {
+
+
+    const element =
+        document.getElementById(
+            "current-user"
+        );
+
+
+    if (!currentUserId) {
+
+        element.textContent =
+            "Usuário não identificado";
+
+        return;
+
+    }
+
+
+    const shortId =
+        currentUserId.substring(
+            0,
+            8
+        );
+
+
+    const name =
+        currentUser?.display_name
+        || "Visitante";
+
+
+    element.textContent =
+        `${name} · ${shortId}`;
+
+}
+
+
+
+// =========================================================
+// 5. CRIAR USUÁRIO COM NOME
+// =========================================================
+
+
+async function createNamedUser() {
+
+
+    const input =
+        document.getElementById(
+            "user-name"
+        );
+
+
+    const name =
+        input.value.trim();
+
+
+    if (!name) {
+
+        alert(
+            "Digite um nome para o perfil."
+        );
+
+        return;
+
+    }
+
+
+    const response =
+        await fetch(
+            "/api/users",
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body:
+                    JSON.stringify({
+
+                        display_name: name
+
+                    })
+
+            }
+        );
+
+
+    if (!response.ok) {
+
+        alert(
+            "Não foi possível criar o perfil."
+        );
+
+        return;
+
+    }
+
+
+    currentUser =
+        await response.json();
+
+
+    currentUserId =
+        currentUser.user_id;
+
+
+    localStorage.setItem(
+        USER_KEY,
+        currentUserId
+    );
+
+
+    input.value = "";
+
+
+    renderCurrentUser();
+
+
+    await loadPersonalRecommendations();
+
+
+    updateStatus(
+        "Novo perfil criado."
+    );
+
+}
+
+
+
+// =========================================================
+// 6. TROCAR VISITANTE
+// =========================================================
+
+
+async function resetUser() {
+
+
+    localStorage.removeItem(
+        USER_KEY
+    );
+
+
+    currentUserId = null;
+
+    currentUser = null;
+
+
+    await ensureUser();
+
+
+    await loadPersonalRecommendations();
+
+
+    updateStatus(
+        "Novo visitante criado."
+    );
+
+}
+
+
+
+// =========================================================
+// 7. STATUS
+// =========================================================
+
+
+function updateStatus(message) {
+
+    document.getElementById(
+        "stats"
+    ).textContent = message;
+
+}
+
+
+
+// =========================================================
+// 8. CARD DA MÚSICA
+// =========================================================
+
+
+function card(track) {
+
+
+    const trackId =
+        escapeHtml(
+            track.track_id
+        );
+
+
+    const name =
+        escapeHtml(
+            track.track_name
+        );
+
+
+    const artist =
+        escapeHtml(
+            track.artists
+        );
+
+
+    const popularity =
+        Number.isFinite(
+            Number(
+                track.popularity
+            )
+        )
+
+        ? Math.round(
+            Number(
+                track.popularity
+            )
+        )
+
+        : "-";
+
+
+    const genre =
+        track.track_genre
+
+        ? `
+            <div class="metadata">
+                Gênero:
+                ${escapeHtml(
+                    track.track_genre
+                )}
+            </div>
+          `
+
+        : "";
+
+
+    const score =
+        track.score !== undefined
+
+        ? `
+            <div class="score">
+                Similaridade:
+                ${(
+                    Number(
+                        track.score
+                    )
+                    *
+                    100
+                ).toFixed(1)}%
+            </div>
+          `
+
+        : "";
+
+
+    return `
+
+        <article class="card">
+
+
+            <div class="track-name">
+
+                ${name}
+
+            </div>
+
+
+            <div class="artist">
+
+                ${artist}
+
+            </div>
+
+
+            <div class="metadata">
+
+                Popularidade:
+                ${popularity}
+
+            </div>
+
+
+            ${genre}
+
+
+            ${score}
+
+
+            <div class="buttons">
+
+
+                <button
+                    class="play"
+                    onclick="
+                        registerInteraction(
+                            '${trackId}',
+                            'play'
+                        )
+                    "
+                >
+
+                    ▶ Ouvir
+
+                </button>
+
+
+                <button
+                    class="like"
+                    onclick="
+                        registerInteraction(
+                            '${trackId}',
+                            'like'
+                        )
+                    "
+                >
+
+                    👍 Gostei
+
+                </button>
+
+
+                <button
+                    class="save"
+                    onclick="
+                        registerInteraction(
+                            '${trackId}',
+                            'save'
+                        )
+                    "
+                >
+
+                    💾 Salvar
+
+                </button>
+
+
+                <button
+                    class="skip"
+                    onclick="
+                        registerInteraction(
+                            '${trackId}',
+                            'skip'
+                        )
+                    "
+                >
+
+                    ⏭ Pular
+
+                </button>
+
+
+                <button
+                    class="dislike"
+                    onclick="
+                        registerInteraction(
+                            '${trackId}',
+                            'dislike'
+                        )
+                    "
+                >
+
+                    👎 Não gostei
+
+                </button>
+
+
+            </div>
+
+
+        </article>
+
+    `;
+
+}
+
+
+
+// =========================================================
+// 9. REGISTRAR INTERAÇÃO
+// =========================================================
+
+
+async function registerInteraction(
+    trackId,
+    eventType
+) {
+
+
+    await ensureUser();
+
+
+    const response =
+        await fetch(
+            "/api/interactions",
+            {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body:
+                    JSON.stringify({
+
+                        user_id:
+                            currentUserId,
+
+                        track_id:
+                            trackId,
+
+                        event_type:
+                            eventType
+
+                    })
+
+            }
+        );
+
+
+    if (!response.ok) {
+
+
+        const errorText =
+            await response.text();
+
+
+        console.error(
+            "Erro ao registrar interação:",
+            errorText
+        );
+
+
+        updateStatus(
+            "Erro ao registrar interação."
+        );
+
+
+        return;
+
+    }
+
+
+    updateStatus(
+        `Evento "${eventType}" registrado.`
+    );
+
+
+    // A preferência mudou.
+    // Portanto, recalculamos a área "Para você".
+
+    await loadPersonalRecommendations();
+
+}
+
+
+
+// =========================================================
+// 10. CARREGAR CATÁLOGO
+// =========================================================
+
+
+async function loadCatalog() {
+
+
+    const catalog =
+        document.getElementById(
+            "catalog"
+        );
+
+
+    catalog.innerHTML =
+        '<p class="empty">Carregando catálogo...</p>';
+
+
+    try {
+
+
+        const response =
+            await fetch(
+                "/api/catalog?n=12"
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Erro na API de catálogo."
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        catalog.innerHTML =
+            data.items
+                .map(card)
+                .join("");
+
+
+    }
+
+    catch (error) {
+
+
+        console.error(
+            error
+        );
+
+
+        catalog.innerHTML =
+            `
+                <p class="error">
+                    Não foi possível carregar
+                    o catálogo.
+                </p>
+            `;
+
+    }
+
+}
+
+
+
+// =========================================================
+// 11. RECOMENDAÇÕES PERSONALIZADAS
+// =========================================================
+
+
+async function loadPersonalRecommendations() {
+
+
+    await ensureUser();
+
+
+    const recommendations =
+        document.getElementById(
+            "recommendations"
+        );
+
+
+    const subtitle =
+        document.getElementById(
+            "personal-sub"
+        );
+
+
+    recommendations.innerHTML =
+        '<p class="empty">Calculando recomendações...</p>';
+
+
+    try {
+
+
+        const response =
+            await fetch(
+
+                `/api/recommendations/${currentUserId}?n=12`
+
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Erro na API de recomendação."
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const count =
+            Number(
+                data.interaction_count
+                ?? 0
+            );
+
+
+        if (count === 0) {
+
+
+            subtitle.textContent =
+
+                "Você ainda não possui histórico. " +
+
+                "Por enquanto mostramos uma seleção inicial.";
+
+
+        }
+
+        else {
+
+
+            subtitle.textContent =
+
+                `Perfil calculado a partir de ` +
+
+                `${count} interações.`;
+
+
+        }
+
+
+        recommendations.innerHTML =
+            data.items
+                .map(card)
+                .join("");
+
+
+        updateStatus(
+
+            `${count} interações registradas ` +
+
+            `para ${currentUser?.display_name || "este usuário"}.`
+
+        );
+
+
+    }
+
+    catch (error) {
+
+
+        console.error(
+            error
+        );
+
+
+        recommendations.innerHTML =
+            `
+                <p class="error">
+                    Não foi possível carregar
+                    as recomendações.
+                </p>
+            `;
+
+    }
+
+}
+
+
+
+// =========================================================
+// 12. BUSCA
+// =========================================================
+
+
+function handleSearch(value) {
+
+
+    clearTimeout(
+        searchTimer
+    );
+
+
+    const query =
+        value.trim();
+
+
+    const section =
+        document.getElementById(
+            "search-section"
+        );
+
+
+    if (!query) {
+
+
+        section.hidden = true;
+
+
+        document.getElementById(
+            "search-results"
+        ).innerHTML = "";
+
+
+        return;
+
+    }
+
+
+    if (query.length < 2) {
+
+        return;
+
+    }
+
+
+    searchTimer =
+        setTimeout(
+
+            () => searchBackend(query),
+
+            300
+
+        );
+
+}
+
+
+
+// =========================================================
+// 13. CONSULTAR BUSCA NO BACKEND
+// =========================================================
+
+
+async function searchBackend(query) {
+
+
+    const section =
+        document.getElementById(
+            "search-section"
+        );
+
+
+    const list =
+        document.getElementById(
+            "search-results"
+        );
+
+
+    const subtitle =
+        document.getElementById(
+            "search-sub"
+        );
+
+
+    section.hidden = false;
+
+
+    subtitle.textContent =
+        `Buscando "${query}"...`;
+
+
+    try {
+
+
+        const response =
+            await fetch(
+
+                `/api/search?q=${
+                    encodeURIComponent(
+                        query
+                    )
+                }&n=20`
+
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Erro na busca."
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        subtitle.textContent =
+
+            `${data.items.length} ` +
+
+            `resultado(s) para "${query}".`;
+
+
+        if (
+            data.items.length === 0
+        ) {
+
+
+            list.innerHTML =
+                `
+                    <p class="empty">
+                        Nenhuma música encontrada.
+                    </p>
+                `;
+
+
+            return;
+
+        }
+
+
+        list.innerHTML =
+            data.items
+                .map(card)
+                .join("");
+
+
+    }
+
+    catch (error) {
+
+
+        console.error(
+            error
+        );
+
+
+        subtitle.textContent =
+            "Falha ao realizar a busca.";
+
+
+        list.innerHTML = "";
+
+    }
+
+}
+
+
+
+// =========================================================
+// 14. INICIALIZAÇÃO DA APLICAÇÃO
+// =========================================================
+
+
+async function initSpotData() {
+
+
+    try {
+
+
+        updateStatus(
+            "Identificando usuário..."
+        );
+
+
+        // 1.
+        // Reconhecer ou criar usuário.
+
+        await ensureUser();
+
+
+
+        updateStatus(
+            "Carregando catálogo..."
+        );
+
+
+        // 2.
+        // Catálogo de músicas.
+
+        await loadCatalog();
+
+
+
+        updateStatus(
+            "Calculando recomendações..."
+        );
+
+
+        // 3.
+        // Recomendações do usuário.
+
+        await loadPersonalRecommendations();
+
+
+    }
+
+    catch (error) {
+
+
+        console.error(
+            "Erro durante inicialização:",
+            error
+        );
+
+
+        document.getElementById(
+            "stats"
+        ).innerHTML =
+
+            '<span class="error">' +
+
+            'Falha ao inicializar a aplicação.' +
+
+            '</span>';
+
+
+    }
+
+}
+
+
+
+// =========================================================
+// 15. INICIAR
+// =========================================================
+
+
+initSpotData();
+
+
+</script>
+
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <!doctype html>
+<html lang="pt-BR">
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>MVP Audiência Musical</title>
+
+        <style>body{font-family:Segoe UI,Arial;background:#11131a;color:#f5f6fa;margin:0;padding:32px}h1{font-size:42px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.card{background:#1c2030;padding:18px;border-radius:16px}.artist{color:#b8bfd1}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}button{border:0;border-radius:999px;padding:9px 13px;font-weight:700;cursor:pointer}.like{background:#93e7d5}.save{background:#b8a7ff}.skip{background:#ffdfa6}.dislike{background:#ffb2c8}</style>
+    </head>
+
+<body>
+    <input
+    id="user-name"
+    placeholder="Seu nome"
+>
+
+<button onclick="createNamedUser()">
+    Entrar
+</button>
+
+    <div class="user-box">
+
+    <span>
+        👤
+    </span>
+
+    <span id="current-user">
+        Carregando...
+    </span>
+
+</div>
+
+    <home>
+        <div
+    class="section-title"
+    style="margin-top:32px"
+>
+    🎯 Para você
+</div>
+
+<div
+    class="section-sub"
+    id="personal-sub"
+>
+    Interaja com músicas para criar seu perfil.
+</div>
+
+<div
+    class="track-list"
+    id="personal-list"
+>
+</div>
+    </home>
+    <h1>Audiência → Dados → Recomendação</h1>
+    <p id="stats">Sessão iniciada.</p>
+    <h2>Catálogo</h2><div id="catalog" class="grid"></div>
+    <h2>Para você</h2>
+    <div id="recommendations" class="grid"></div>
+
+<script>
+
+const API = "";
+
+const USER_KEY =
+    "spotdata_user_id";
+
+let currentUserId =
+    localStorage.getItem(USER_KEY);
+
+
+//  criar usuário autmáticamente
+async function ensureUser() {
+
+    // Já existe usuário neste navegador
+    if (currentUserId) {
+
+        const response = await fetch(
+            `/api/users/${currentUserId}`
+        );
+
+        if (response.ok) {
+            return currentUserId;
+        }
+
+        // O navegador tinha ID,
+        // mas o banco foi apagado.
+        localStorage.removeItem(
+            USER_KEY
+        );
+
+        currentUserId = null;
+    }
+
+
+    // Criar novo usuário
+    const response = await fetch(
+        "/api/users",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+
+            body: JSON.stringify({
+                display_name:
+                    "Visitante"
+            })
+        }
+    );
+
+
+    const user =
+        await response.json();
+
+
+    currentUserId =
+        user.user_id;
+
+
+    localStorage.setItem(
+        USER_KEY,
+        currentUserId
+    );
+
+
+    return currentUserId;
+}
+
+// registrar as escolhas
+async function registerInteraction(
+    trackId,
+    eventType
+) {
+
+    await ensureUser();
+
+
+    const response = await fetch(
+        "/api/interactions",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+
+            body: JSON.stringify({
+                user_id:
+                    currentUserId,
+
+                track_id:
+                    trackId,
+
+                event_type:
+                    eventType
+            })
+        }
+    );
+
+
+    if (!response.ok) {
+
+        console.error(
+            "Erro ao registrar interação"
+        );
+
+        return;
+    }
+
+
+    console.log(
+        "Interação:",
+        trackId,
+        eventType
+    );
+
+
+    // Após a preferência mudar,
+    // atualizamos "Para você".
+    await loadPersonalRecommendations();
+}
+
+function trackRow(
+    t,
+    i,
+    showSim = false
+) {
+
+    const exp =
+        t.is_explicit
+        ? '<span class="explicit-tag">E</span>'
+        : '';
+
+
+    const score =
+        showSim && t.score !== undefined
+
+        ? `
+          <span class="track-pop">
+             ${(t.score * 100).toFixed(0)}%
+          </span>
+          `
+
+        : `
+          <span class="track-pop">
+             ${t.popularity ?? ""}
+          </span>
+          `;
+
+
+    return `
+    <div class="track-row">
+
+        <span class="track-num">
+            ${i}
+        </span>
+
+
+        <div
+            class="track-info"
+            onclick="playTrack(
+                '${t.track_id}',
+                ${JSON.stringify(t.track_name)},
+                ${JSON.stringify(t.artists)}
+            )"
+        >
+
+            <div class="track-name">
+                ${t.track_name}
+                ${exp}
+            </div>
+
+            <div class="track-artist">
+                ${(t.artists || "")
+                    .replace(/;/g, " · ")}
+            </div>
+
+        </div>
+
+
+        <div class="audience-actions">
+
+            <button
+                title="Gostei"
+                onclick="
+                    event.stopPropagation();
+                    registerInteraction(
+                        '${t.track_id}',
+                        'like'
+                    )
+                ">
+                👍
+            </button>
+
+
+            <button
+                title="Salvar"
+                onclick="
+                    event.stopPropagation();
+                    registerInteraction(
+                        '${t.track_id}',
+                        'save'
+                    )
+                ">
+                💾
+            </button>
+
+
+            <button
+                title="Pular"
+                onclick="
+                    event.stopPropagation();
+                    registerInteraction(
+                        '${t.track_id}',
+                        'skip'
+                    )
+                ">
+                ⏭
+            </button>
+
+
+            <button
+                title="Não gostei"
+                onclick="
+                    event.stopPropagation();
+                    registerInteraction(
+                        '${t.track_id}',
+                        'dislike'
+                    )
+                ">
+                👎
+            </button>
+
+        </div>
+
+
+        ${score}
+
+    </div>
+    `;
+}
+
+// play track
+async function playTrack(
+    trackId,
+    name,
+    artist
+) {
+
+    // Mantém a interface já existente
+    nowPlay(
+        name,
+        artist.split(";")[0]
+    );
+
+
+    // Novo comportamento:
+    // também vira dado.
+    await registerInteraction(
+        trackId,
+        "play"
+    );
+}
+
+// carregando catalógo real
+async function loadCatalog() {
+
+    const response =
+        await fetch(
+            "/api/catalog?n=20"
+        );
+
+
+    const data =
+        await response.json();
+
+
+    document.getElementById(
+        "top5-list"
+    ).innerHTML =
+        data.items
+            .map(
+                (track, index) =>
+                    trackRow(
+                        track,
+                        index + 1
+                    )
+            )
+            .join("");
+}
+
+//  busca real não mais estática como no modelo original 
+let searchTimer = null;
+
+
+function handleSearch(q) {
+
+    clearTimeout(
+        searchTimer
+    );
+
+
+    const query =
+        q.trim();
+
+
+    if (
+        query.length === 0
+    ) {
+
+        goTo(
+            "home",
+            document.querySelectorAll(
+                ".nav-item"
+            )[0]
+        );
+
+        return;
+    }
+
+
+    if (
+        query.length < 2
+    ) {
+
+        return;
+    }
+
+
+    searchTimer =
+        setTimeout(
+            () =>
+                searchBackend(query),
+            300
+        );
+}
+
+async function searchBackend(
+    query
+) {
+
+    const response =
+        await fetch(
+            `/api/search?q=${
+                encodeURIComponent(query)
+            }&n=20`
+        );
+
+
+    const data =
+        await response.json();
+
+
+    document
+        .querySelectorAll(
+            ".section"
+        )
+        .forEach(
+            section =>
+                section.classList.remove(
+                    "active"
+                )
+        );
+
+
+    document
+        .getElementById(
+            "sec-busca"
+        )
+        .classList.add(
+            "active"
+        );
+
+
+    const list =
+        document.getElementById(
+            "search-list"
+        );
+
+
+    const sub =
+        document.getElementById(
+            "search-sub"
+        );
+
+
+    sub.textContent =
+        `${data.items.length}
+         resultados para "${query}"`;
+
+
+    list.innerHTML =
+        data.items
+            .map(
+                (track, index) =>
+                    trackRow(
+                        track,
+                        index + 1
+                    )
+            )
+            .join("");
+}
+
+async function loadPersonalRecommendations() {
+
+    await ensureUser();
+
+
+    const response =
+        await fetch(
+            `/api/recommendations/${
+                currentUserId
+            }?n=12`
+        );
+
+
+    if (!response.ok) {
+        return;
+    }
+
+
+    const data =
+        await response.json();
+
+
+    const list =
+        document.getElementById(
+            "personal-list"
+        );
+
+
+    const subtitle =
+        document.getElementById(
+            "personal-sub"
+        );
+
+
+    if (
+        data.interaction_count === 0
+    ) {
+
+        subtitle.textContent =
+            "Escolha algumas músicas " +
+            "para que eu conheça seu perfil.";
+
+        list.innerHTML = "";
+
+        return;
+    }
+
+
+    subtitle.textContent =
+        `Perfil calculado a partir de ${
+            data.interaction_count
+        } interações`;
+
+
+    list.innerHTML =
+        data.items
+            .map(
+                (track, index) =>
+                    trackRow(
+                        track,
+                        index + 1,
+                        true
+                    )
+            )
+            .join("");
+}
+
+async function initSpotData() {
+
+    try {
+
+        // 1. Reconhece/cria usuário
+        await ensureUser();
+
+
+        // 2. Catálogo real
+        await loadCatalog();
+
+
+        // 3. Recomendações pessoais
+        await loadPersonalRecommendations();
+
+
+        // Mantemos temporariamente
+        // algumas partes antigas.
+        renderMoods();
+        renderPlaylist();
+        renderPodcasts();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Erro na inicialização:",
+            error
+        );
+    }
+
+await ensureUser();
+renderCurrentUser();
+}
+
+
+initSpotData();
+
+
+
+function renderCurrentUser() {
+
+    const shortId =
+        currentUserId
+            ? currentUserId.substring(
+                0,
+                8
+            )
+            : "---";
+
+
+    document.getElementById(
+        "current-user"
+    ).textContent =
+        `Visitante ${shortId}`;
+}
+
+
+
+
+const KEY='mvp_music_session';
+let sessionId=localStorage.getItem(KEY);
+
+if(!sessionId){
+    sessionId=crypto.randomUUID();localStorage.setItem(KEY,sessionId)
+}
+
+function esc(v){
+    return String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+}
+
+function card(i){
+    return `<div class="card"><b>${esc(i.track_name)}</b><div class="artist">${esc(i.artists)}</div><div>Popularidade: ${Math.round(i.popularity)}${i.score!==undefined?' · score '+i.score.toFixed(3):''}</div><div class="buttons">
+        <button class="like" onclick="send('${i.track_id}','like')">👍 Gostei</button><button class="save" onclick="send('${i.track_id}','save')">💾 Salvar</button><button class="skip" onclick="send('${i.track_id}','skip')">⏭ Pular</button>
+        <button class="dislike" onclick="send('${i.track_id}','dislike')">👎 Não gostei</button></div></div>`}
+
+async function loadCatalog(){
+    let d=await (await fetch('/api/catalog?n=12')).json();catalog.innerHTML=d.items.map(card).join('')
+}
+
+async function loadRecs(){
+    let d=await (await fetch(`/api/recommendations/${sessionId}?n=12`)).json();stats.textContent=`Sessão ${sessionId.slice(0,8)} · ${d.interaction_count} interações`;recommendations.innerHTML=d.items.map(card).join('')}
+
+async function send(track_id,event_type){await fetch('/api/interactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId,track_id,event_type})});loadRecs()}
+
+loadCatalog();
+loadRecs();
+
+</script>
+</body>
+</html> -->

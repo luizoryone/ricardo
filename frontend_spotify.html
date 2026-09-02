@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpotData — Detetives dos Dados</title>
+<style>
+  :root {
+    --green: #1DB954;
+    --green-dim: #158a3e;
+    --bg: #121212;
+    --bg2: #181818;
+    --bg3: #282828;
+    --bg4: #333333;
+    --text: #FFFFFF;
+    --text2: #B3B3B3;
+    --text3: #6a6a6a;
+    --sidebar-w: 240px;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+         background: var(--bg); color: var(--text); display: flex;
+         height: 100vh; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w); background: #000; display: flex;
+    flex-direction: column; padding: 24px 12px; flex-shrink: 0; overflow-y: auto;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; padding: 0 12px 28px; }
+  .logo-icon { width: 32px; height: 32px; background: var(--green);
+               border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .logo-icon svg { width: 18px; height: 18px; fill: #000; }
+  .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .logo-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+
+  .nav-label { font-size: 11px; font-weight: 700; color: var(--text3);
+               letter-spacing: 1.2px; text-transform: uppercase;
+               padding: 0 12px; margin-bottom: 8px; margin-top: 20px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 14px; padding: 10px 12px;
+    border-radius: var(--radius); cursor: pointer; color: var(--text2);
+    font-size: 14px; font-weight: 500; transition: color .15s, background .15s;
+    user-select: none;
+  }
+  .nav-item:hover { color: var(--text); background: var(--bg3); }
+  .nav-item.active { color: var(--text); background: var(--bg3); }
+  .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+  .stats-box {
+    margin-top: auto; background: var(--bg3); border-radius: var(--radius);
+    padding: 16px; font-size: 12px; color: var(--text2);
+    flex-shrink: 0; margin-bottom: 80px;
+  }
+  .stats-box strong { color: var(--text); display: block; font-size: 20px;
+                      font-weight: 700; line-height: 1; margin-bottom: 4px; }
+
+  /* ── MAIN ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    background: linear-gradient(180deg, #2a2a2a 0%, transparent 100%);
+    padding: 20px 32px 0; display: flex; align-items: center;
+    gap: 16px; flex-shrink: 0;
+  }
+  .search-wrap { flex: 1; max-width: 340px; position: relative; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+                     width: 16px; height: 16px; fill: var(--text3); pointer-events: none; }
+  .search-input {
+    width: 100%; background: var(--bg3); border: none; border-radius: 24px;
+    color: var(--text); font-size: 14px; padding: 10px 16px 10px 38px;
+    outline: none; transition: background .15s;
+  }
+  .search-input:focus { background: var(--bg4); }
+  .search-input::placeholder { color: var(--text3); }
+
+  .genre-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    background: var(--bg3); border: none; border-radius: 24px;
+    color: var(--text2); font-size: 13px; padding: 6px 16px;
+    cursor: pointer; transition: background .15s, color .15s; white-space: nowrap;
+  }
+  .pill:hover { background: var(--bg4); color: var(--text); }
+  .pill.active { background: var(--green); color: #000; font-weight: 600; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px 32px 80px; }
+  .content::-webkit-scrollbar { width: 6px; }
+  .content::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+
+  /* ── SECTION ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .section-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .section-sub { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
+
+  /* ── TRACK LIST ── */
+  .track-list { display: flex; flex-direction: column; gap: 2px; }
+  .track-row {
+    display: grid; align-items: center;
+    grid-template-columns: 28px 1fr auto auto;
+    gap: 12px; padding: 8px 12px; border-radius: var(--radius);
+    cursor: pointer; transition: background .1s;
+  }
+  .track-row:hover { background: var(--bg3); }
+  .track-num { color: var(--text3); font-size: 14px; text-align: right; }
+  .track-info { min-width: 0; }
+  .track-name { font-size: 15px; font-weight: 500; white-space: nowrap;
+                overflow: hidden; text-overflow: ellipsis; }
+  .track-artist { font-size: 13px; color: var(--text2); margin-top: 2px;
+                  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .track-pop { font-size: 13px; color: var(--text2); white-space: nowrap; }
+  .mood-badge {
+    font-size: 11px; padding: 3px 8px; border-radius: 12px;
+    font-weight: 600; white-space: nowrap;
+  }
+  .mood-a { background: #3a3000; color: #f4c20d; }
+  .mood-i { background: #3a0000; color: #ff6b6b; }
+  .mood-t { background: #001a3a; color: #5ba3f5; }
+  .mood-r { background: #003a10; color: #4caf7d; }
+  .explicit-tag {
+    background: var(--text3); color: #000; font-size: 9px; font-weight: 700;
+    padding: 1px 4px; border-radius: 2px; margin-left: 6px; vertical-align: middle;
+  }
+
+  /* ── CARDS GRID ── */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 16px; margin-bottom: 32px; }
+  .card {
+    background: var(--bg2); border-radius: 10px; padding: 16px;
+    cursor: pointer; transition: background .15s;
+  }
+  .card:hover { background: var(--bg3); }
+  .card-cover {
+    width: 100%; aspect-ratio: 1; border-radius: 6px; margin-bottom: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; font-weight: 700;
+  }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-sub { font-size: 12px; color: var(--text2); }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #1a3a1a 0%, #0d2a0d 50%, #121212 100%);
+    border-radius: 12px; padding: 40px 32px; margin-bottom: 32px;
+    display: flex; align-items: flex-end; gap: 24px;
+  }
+  .hero-icon { font-size: 72px; line-height: 1; flex-shrink: 0; }
+  .hero-info {}
+  .hero-type { font-size: 12px; font-weight: 700; text-transform: uppercase;
+               letter-spacing: 1px; color: var(--text2); margin-bottom: 8px; }
+  .hero-title { font-size: 48px; font-weight: 900; line-height: 1.05;
+                letter-spacing: -1px; margin-bottom: 12px; }
+  .hero-meta { font-size: 14px; color: var(--text2); }
+  .hero-meta span { color: var(--text); font-weight: 600; }
+
+  /* ── PLAY BUTTON ── */
+  .play-btn {
+    background: var(--green); border: none; border-radius: 50%; width: 56px; height: 56px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: transform .1s, background .15s; margin-bottom: 24px; flex-shrink: 0;
+  }
+  .play-btn:hover { background: #1ed760; transform: scale(1.04); }
+  .play-btn svg { width: 22px; height: 22px; fill: #000; margin-left: 3px; }
+
+  /* ── MOOD CHART ── */
+  .mood-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+  .mood-card {
+    background: var(--bg2); border-radius: 10px; padding: 20px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .mood-icon { font-size: 32px; }
+  .mood-label { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .mood-count { font-size: 13px; color: var(--text2); }
+  .mood-bar-wrap { flex: 1; height: 4px; background: var(--bg4); border-radius: 2px; margin-top: 8px; }
+  .mood-bar { height: 4px; border-radius: 2px; }
+
+  /* ── PODCAST LIST ── */
+  .pod-row {
+    display: grid; grid-template-columns: 52px 1fr auto;
+    gap: 14px; align-items: center; padding: 10px 12px;
+    border-radius: var(--radius); cursor: pointer; transition: background .1s;
+    border-bottom: 1px solid var(--bg3);
+  }
+  .pod-row:hover { background: var(--bg3); }
+  .pod-cover {
+    width: 52px; height: 52px; border-radius: 6px;
+    background: var(--bg3); display: flex; align-items: center;
+    justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .pod-name { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+  .pod-meta { font-size: 12px; color: var(--text2); }
+  .pod-dur { font-size: 13px; color: var(--text2); white-space: nowrap; }
+
+  /* ── SEARCH RESULTS ── */
+  .search-result-wrap { display: none; }
+  .search-result-wrap.visible { display: block; }
+
+  /* ── PLAYLIST BUILDER ── */
+  .filter-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filter-btn {
+    background: var(--bg3); border: 1.5px solid transparent;
+    border-radius: 24px; color: var(--text2); font-size: 13px;
+    padding: 7px 18px; cursor: pointer; transition: all .15s; font-weight: 500;
+  }
+  .filter-btn:hover { border-color: var(--text3); color: var(--text); }
+  .filter-btn.active { border-color: var(--green); color: var(--green); background: #1db95420; }
+
+  /* ── SCROLLBAR ── */
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--bg3); }
+
+  /* ── NOW PLAYING BAR ── */
+  .nowplaying {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 72px;
+    background: #181818; border-top: 1px solid #282828;
+    display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 100;
+  }
+  .np-track { min-width: 0; flex: 1; }
+  .np-name { font-size: 13px; font-weight: 500; white-space: nowrap;
+             overflow: hidden; text-overflow: ellipsis; }
+  .np-artist { font-size: 11px; color: var(--text2); }
+  .np-controls { display: flex; align-items: center; gap: 20px; flex: 2; justify-content: center; }
+  .np-btn { background: none; border: none; cursor: pointer; color: var(--text2);
+            transition: color .15s; display: flex; align-items: center; }
+  .np-btn:hover { color: var(--text); }
+  .np-btn svg { width: 18px; height: 18px; }
+  .np-play {
+    background: var(--text); border: none; border-radius: 50%; width: 32px; height: 32px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: transform .1s;
+  }
+  .np-play:hover { transform: scale(1.06); }
+  .np-play svg { width: 14px; height: 14px; fill: #000; margin-left: 2px; }
+  .np-vol { flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+  .np-vol svg { width: 16px; height: 16px; fill: var(--text2); }
+  input[type=range] {
+    -webkit-appearance: none; width: 80px; height: 3px;
+    background: var(--bg4); border-radius: 2px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 12px;
+    background: var(--text); border-radius: 50%; cursor: pointer;
+  }
+
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .hero-title { font-size: 28px; }
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+    </div>
+    <div>
+      <div class="logo-text">SpotData</div>
+      <div class="logo-sub">Residência em IA · UnB</div>
+    </div>
+  </div>
+
+  <span class="nav-label">Menu</span>
+
+  <div class="nav-item active" onclick="goTo('home',this)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    Início
+  </div>
+  <div class="nav-item" onclick="goTo('discover',this)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    Descobrir
+  </div>
+  <div class="nav-item" onclick="goTo('playlist',this)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+    Sua Playlist
+  </div>
+  <div class="nav-item" onclick="goTo('podcasts',this)">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm5.3 11c0 3-2.54 5.1-5.3 5.1S6.7 15 6.7 12H5c0 3.41 2.72 6.23 6 6.72V22h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg>
+    Podcasts
+  </div>
+
+  <span class="nav-label">Gêneros</span>
+  <div class="nav-item" onclick="setGenre('pop');goTo('playlist',document.querySelector('[onclick*=playlist]'))">
+    🎵 Pop
+  </div>
+  <div class="nav-item" onclick="setGenre('samba');goTo('playlist',document.querySelector('[onclick*=playlist]'))">
+    🥁 Samba
+  </div>
+  <div class="nav-item" onclick="setGenre('sertanejo');goTo('playlist',document.querySelector('[onclick*=playlist]'))">
+    🤠 Sertanejo
+  </div>
+
+  <div class="stats-box">
+    <strong>89.740</strong>
+    músicas analisadas
+    <div style="margin-top:10px"><strong>114</strong> gêneros</div>
+    <div style="margin-top:10px"><strong>Fase 3</strong> — Frontend</div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<div class="main">
+  <div class="topbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <input class="search-input" id="searchInput" type="text" placeholder="Buscar músicas ou artistas..." oninput="handleSearch(this.value)" onkeydown="if(event.key==='Escape'){this.value='';handleSearch('')}">
+    </div>
+
+  </div>
+
+  <div class="content">
+
+    <!-- ══ HOME ══ -->
+    <section class="section active" id="sec-home">
+      <div class="hero">
+        <div class="hero-icon">🎵</div>
+        <div class="hero-info" style="flex:1">
+          <div class="hero-type">Dataset · Spotify · Residência IA</div>
+          <div class="hero-title">Top músicas<br>do mundo</div>
+          <div class="hero-meta"><span>89.740</span> faixas analisadas · <span>114</span> gêneros · <span>Cosine Similarity</span></div>
+        </div>
+        <button class="play-btn" onclick="nowPlay('Unholy (feat. Kim Petras)','Sam Smith')">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+      </div>
+
+      <div class="section-title">🏆 Top 5 mais populares</div>
+      <div class="section-sub">Baseado no índice de popularidade do Spotify (0–100)</div>
+      <div class="track-list" id="top5-list"></div>
+
+      <div style="margin-top:36px; margin-bottom:12px">
+        <div class="section-title">Perfil emocional do catálogo</div>
+        <div class="section-sub">Distribuição por valência × energia — 89.740 músicas</div>
+      </div>
+      <div class="mood-grid" id="mood-grid"></div>
+
+      <div style="margin-top:8px">
+        <div class="section-title">Explorar por gênero</div>
+        <div class="section-sub">Clique para montar sua playlist</div>
+      </div>
+      <div class="cards-grid">
+        <div class="card" onclick="setGenre('pop');goTo('playlist',document.querySelectorAll('.nav-item')[2])">
+          <div class="card-cover" style="background:#1a1a3a;color:#7b9ef4">Pop</div>
+          <div class="card-title">Pop</div>
+          <div class="card-sub">7.094 faixas</div>
+        </div>
+        <div class="card" onclick="setGenre('samba');goTo('playlist',document.querySelectorAll('.nav-item')[2])">
+          <div class="card-cover" style="background:#3a1a00;color:#f4a020">Samba</div>
+          <div class="card-title">Samba</div>
+          <div class="card-sub">817 faixas</div>
+        </div>
+        <div class="card" onclick="setGenre('sertanejo');goTo('playlist',document.querySelectorAll('.nav-item')[2])">
+          <div class="card-cover" style="background:#2a1a00;color:#d4843a">Sertanejo</div>
+          <div class="card-title">Sertanejo</div>
+          <div class="card-sub">890 faixas</div>
+        </div>
+        <div class="card" onclick="goTo('podcasts',document.querySelectorAll('.nav-item')[3])">
+          <div class="card-cover" style="background:#1a2a1a;color:#4caf7d">🎙️</div>
+          <div class="card-title">Podcasts</div>
+          <div class="card-sub">940 faixas longas</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ DISCOVER ══ -->
+    <section class="section" id="sec-discover">
+      <div class="section-title">🔍 Descobrir músicas similares</div>
+      <div class="section-sub">Escolha uma referência e o sistema encontra músicas com perfil sonoro parecido usando Cosine Similarity</div>
+
+      <div style="margin-bottom:20px; display:flex; gap:12px; flex-wrap:wrap">
+        <button class="filter-btn active" onclick="loadRecs(0,this)">Unholy · Sam Smith</button>
+        <button class="filter-btn" onclick="loadRecs(1,this)">Mas Que Nada · Sérgio Mendes</button>
+        <button class="filter-btn" onclick="loadRecs(2,this)">Problemão · Hugo & Vitor</button>
+      </div>
+
+      <div id="ref-card" style="background:var(--bg2);border-radius:10px;padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:16px">
+        <div style="width:56px;height:56px;background:var(--bg3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">🎵</div>
+        <div style="min-width:0;flex:1">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px">Música de referência</div>
+          <div id="ref-name" style="font-size:18px;font-weight:700">Unholy (feat. Kim Petras)</div>
+          <div id="ref-artist" style="font-size:13px;color:var(--text2)">Sam Smith · pop · Triste 🔵</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--text3)">popularidade</div>
+          <div style="font-size:28px;font-weight:800;color:var(--green)">100</div>
+        </div>
+      </div>
+
+      <div class="section-title" style="font-size:16px;margin-bottom:12px">Músicas similares encontradas</div>
+      <div class="track-list" id="rec-list"></div>
+    </section>
+
+    <!-- ══ PLAYLIST ══ -->
+    <section class="section" id="sec-playlist">
+      <div class="section-title">🎼 Sua Playlist</div>
+      <div class="section-sub">Filtre por gênero e humor para montar a trilha perfeita</div>
+
+      <div style="margin-bottom:8px;font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px">Gênero</div>
+      <div class="filter-row" id="genre-filters">
+        <button class="filter-btn active" onclick="setGenre('pop',this)">🎵 Pop</button>
+        <button class="filter-btn" onclick="setGenre('samba',this)">🥁 Samba</button>
+        <button class="filter-btn" onclick="setGenre('sertanejo',this)">🤠 Sertanejo</button>
+      </div>
+
+      <div style="margin-bottom:8px;font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:1px">Humor</div>
+      <div class="filter-row" id="mood-filters">
+        <button class="filter-btn active" onclick="setMood('todos',this)">Todos</button>
+        <button class="filter-btn" onclick="setMood('Animado 🟡',this)">Animado 🟡</button>
+        <button class="filter-btn" onclick="setMood('Intenso 🔴',this)">Intenso 🔴</button>
+        <button class="filter-btn" onclick="setMood('Triste 🔵',this)">Triste 🔵</button>
+        <button class="filter-btn" onclick="setMood('Relaxado 🟢',this)">Relaxado 🟢</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer">
+          <input type="checkbox" id="chk-explicit" onchange="renderPlaylist()" style="accent-color:var(--green)">
+          Ocultar conteúdo explícito 🔞
+        </label>
+      </div>
+
+      <div class="track-list" id="playlist-list"></div>
+    </section>
+
+    <!-- ══ BUSCA ══ -->
+    <section class="section" id="sec-busca">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="section-title">🔎 Resultados da busca</div>
+        <button onclick="clearSearch()" style="background:var(--bg3);border:none;border-radius:20px;color:var(--text2);font-size:12px;padding:6px 14px;cursor:pointer">Limpar busca</button>
+      </div>
+      <div class="section-sub" id="search-sub">Digite no campo de busca acima</div>
+      <div class="track-list" id="search-list"></div>
+    </section>
+
+    <!-- ══ PODCASTS ══ -->
+    <section class="section" id="sec-podcasts">
+      <div class="section-title">🎙️ Podcasts & Faixas Longas</div>
+      <div class="section-sub">Faixas com mais de 20 minutos ou alta presença de fala (speechiness > 0.66) · 940 faixas identificadas</div>
+      <div id="pod-list"></div>
+    </section>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── NOW PLAYING BAR ── -->
+<div class="nowplaying">
+  <div class="np-track">
+    <div class="np-name" id="np-name">Nenhuma música selecionada</div>
+    <div class="np-artist" id="np-artist" style="display:flex;align-items:center;gap:6px">
+      <span>Clique em uma faixa para selecionar</span>
+      <span style="background:var(--bg4);color:var(--text3);font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600">ILUSTRATIVO</span>
+    </div>
+  </div>
+  <div class="np-controls">
+    <button class="np-btn" title="Anterior">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+    </button>
+    <button class="np-play" id="np-play-btn" onclick="togglePlay()">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </button>
+    <button class="np-btn" title="Próxima">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+    </button>
+  </div>
+  <div class="np-vol">
+    <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+    <input type="range" min="0" max="100" value="70">
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const DATA = {
+  top5: [
+    {track_name:"Unholy (feat. Kim Petras)",artists:"Sam Smith;Kim Petras",popularity:100,mood:"Triste 🔵",is_explicit:false},
+    {track_name:"Quevedo: Bzrp Music Sessions, Vol. 52",artists:"Bizarrap;Quevedo",popularity:99,mood:"Animado 🟡",is_explicit:false},
+    {track_name:"La Bachata",artists:"Manuel Turizo",popularity:98,mood:"Animado 🟡",is_explicit:false},
+    {track_name:"I'm Good (Blue)",artists:"David Guetta;Bebe Rexha",popularity:98,mood:"Intenso 🔴",is_explicit:true},
+    {track_name:"Me Porto Bonito",artists:"Bad Bunny;Chencho Corleone",popularity:97,mood:"Intenso 🔴",is_explicit:true}
+  ],
+  playlists: {
+    pop: [
+      {track_name:"I'm Good (Blue)",artists:"David Guetta;Bebe Rexha",popularity:98,mood:"Intenso 🔴",is_explicit:true},
+      {track_name:"As It Was",artists:"Harry Styles",popularity:95,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Glimpse of Us",artists:"Joji",popularity:94,mood:"Triste 🔵",is_explicit:false},
+      {track_name:"Another Love",artists:"Tom Odell",popularity:93,mood:"Intenso 🔴",is_explicit:false},
+      {track_name:"Calm Down",artists:"Rema;Selena Gomez",popularity:92,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Blinding Lights",artists:"The Weeknd",popularity:91,mood:"Intenso 🔴",is_explicit:false},
+      {track_name:"Running Up That Hill",artists:"Kate Bush",popularity:90,mood:"Intenso 🔴",is_explicit:false},
+      {track_name:"MIDDLE OF THE NIGHT",artists:"Elley Duhé",popularity:90,mood:"Intenso 🔴",is_explicit:false}
+    ],
+    samba: [
+      {track_name:"Mas Que Nada",artists:"Sérgio Mendes;Black Eyed Peas",popularity:64,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Impossível Te Esquecer - Ao Vivo",artists:"Caju Pra Baixo",popularity:57,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Problema Emocional / Volta de Vez Pra Mim",artists:"Samba De Dom",popularity:56,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Contrato Vitalício - Ao Vivo",artists:"Akatu;Ferrugem",popularity:55,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Já é - Ao vivo",artists:"Jorge Aragão",popularity:55,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Meu Plano Falhou",artists:"Akatu",popularity:54,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Carolina",artists:"Seu Jorge",popularity:53,mood:"Intenso 🔴",is_explicit:false},
+      {track_name:"Só por um Momento - Ao Vivo",artists:"Akatu;Grupo Revelação",popularity:53,mood:"Animado 🟡",is_explicit:false}
+    ],
+    sertanejo: [
+      {track_name:"Problemão - Ao Vivo",artists:"Hugo & Vitor;Clayton & Romário",popularity:62,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Meu Anjo / Esqueça Que Eu Te Amo",artists:"Murilo Huff",popularity:62,mood:"Intenso 🔴",is_explicit:false},
+      {track_name:"Sentimentalmente Esperto - Ao Vivo",artists:"Henrique & Juliano",popularity:62,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Amores De Esquina - Ao Vivo",artists:"Juan Marcus & Vinícius",popularity:60,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Coração De Rua - Ao Vivo",artists:"Henrique & Juliano",popularity:60,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Quase Recaída",artists:"João Bosco & Vinicius",popularity:60,mood:"Animado 🟡",is_explicit:false},
+      {track_name:"Vestido De Seda",artists:"Teodoro & Sampaio",popularity:60,mood:"Relaxado 🟢",is_explicit:false},
+      {track_name:"Sem Rede - Ao Vivo",artists:"Henrique & Juliano",popularity:59,mood:"Intenso 🔴",is_explicit:false}
+    ]
+  },
+  recs: [
+    [
+      {track_name:"I Know You (feat. Bastille) - Vigiland Remix",artists:"Craig David;Bastille",popularity:59,mood:"Triste 🔵",sim:0.973},
+      {track_name:"Hypocrite",artists:"Jok'air",popularity:37,mood:"Intenso 🔴",sim:0.966,is_explicit:true},
+      {track_name:"jaded",artists:"sadeyes",popularity:62,mood:"Triste 🔵",sim:0.965,is_explicit:true},
+      {track_name:"11:11",artists:"Yung Pinch",popularity:34,mood:"Intenso 🔴",sim:0.951,is_explicit:true},
+      {track_name:"Metas e Versos",artists:"DJ Roger Vale;Zack Vox",popularity:40,mood:"Intenso 🔴",sim:0.939},
+      {track_name:"Seven Nation Army",artists:"The White Stripes",popularity:84,mood:"Intenso 🔴",sim:0.930}
+    ],
+    [
+      {track_name:"Girl From Ipanema",artists:"Stan Getz;João Gilberto",popularity:60,mood:"Relaxado 🟢",sim:0.961},
+      {track_name:"Aquarela do Brasil",artists:"Gal Costa",popularity:52,mood:"Animado 🟡",sim:0.944},
+      {track_name:"Garota de Ipanema",artists:"Tom Jobim",popularity:55,mood:"Relaxado 🟢",sim:0.937},
+      {track_name:"Carolina",artists:"Seu Jorge",popularity:53,mood:"Intenso 🔴",sim:0.921},
+      {track_name:"Samba de Uma Nota Só",artists:"Baden Powell",popularity:48,mood:"Animado 🟡",sim:0.908},
+      {track_name:"Desafinado",artists:"João Gilberto",popularity:51,mood:"Relaxado 🟢",sim:0.895}
+    ],
+    [
+      {track_name:"Coração De Rua",artists:"Henrique & Juliano",popularity:60,mood:"Animado 🟡",sim:0.988},
+      {track_name:"Quase Recaída",artists:"João Bosco & Vinicius",popularity:60,mood:"Animado 🟡",sim:0.981},
+      {track_name:"Vestido De Seda",artists:"Teodoro & Sampaio",popularity:60,mood:"Relaxado 🟢",sim:0.975},
+      {track_name:"Amores De Esquina",artists:"Juan Marcus & Vinícius",popularity:60,mood:"Animado 🟡",sim:0.969},
+      {track_name:"Sem Rede - Ao Vivo",artists:"Henrique & Juliano",popularity:59,mood:"Intenso 🔴",sim:0.958},
+      {track_name:"Recaída",artists:"Gusttavo Lima",popularity:58,mood:"Triste 🔵",sim:0.944}
+    ]
+  ],
+  recRefs: [
+    {name:"Unholy (feat. Kim Petras)",artist:"Sam Smith · dance · Triste 🔵",pop:100},
+    {name:"Mas Que Nada",artist:"Sérgio Mendes · samba · Animado 🟡",pop:64},
+    {name:"Problemão - Ao Vivo",artist:"Hugo & Vitor · sertanejo · Animado 🟡",pop:62}
+  ],
+  podcasts: [
+    {track_name:"Unity (Voyage Mix) Pt. 1",artists:"Tale Of Us",duration_min:87.3,track_genre:"minimal-techno"},
+    {track_name:"Crossing Wires 002 - Continuous DJ Mix",artists:"Timo Maas",duration_min:79.8,track_genre:"breakbeat"},
+    {track_name:"The Lab 03 - Continuous DJ Mix Part 1",artists:"Seth Troxler",duration_min:78.8,track_genre:"detroit-techno"},
+    {track_name:"Amnesia Ibiza Underground 10 DJ Mix",artists:"Loco Dice",duration_min:76.1,track_genre:"minimal-techno"},
+    {track_name:"House of Om - Mark Farina - Continuous Mix",artists:"Mark Farina",duration_min:74.1,track_genre:"chicago-house"},
+    {track_name:"Live In Tokyo - Continuous Mix",artists:"Mark Farina",duration_min:72.3,track_genre:"chicago-house"}
+  ],
+  moods: {"Animado 🟡":33220,"Intenso 🔴":30211,"Triste 🔵":19030,"Relaxado 🟢":7279}
+};
+
+// ── STATE ──
+let curGenre = 'pop', curMood = 'todos', curRec = 0, playing = false;
+
+// ── HELPERS ──
+function moodClass(m) {
+  if (m.includes('🟡')) return 'mood-a';
+  if (m.includes('🔴')) return 'mood-i';
+  if (m.includes('🔵')) return 'mood-t';
+  return 'mood-r';
+}
+function trackRow(t, i, showSim) {
+  const exp = t.is_explicit ? '<span class="explicit-tag">E</span>' : '';
+  const sim = showSim && t.sim ? `<span style="font-size:12px;color:var(--text3)">sim ${t.sim.toFixed(3)}</span>` : `<span class="track-pop">${t.popularity}</span>`;
+  return `<div class="track-row" onclick="nowPlay('${t.track_name.replace(/'/g,"\\'")}','${t.artists.split(';')[0].replace(/'/g,"\\'")}')">
+    <span class="track-num">${i}</span>
+    <div class="track-info">
+      <div class="track-name">${t.track_name}${exp}</div>
+      <div class="track-artist">${t.artists.replace(/;/g,' · ')}</div>
+    </div>
+    <span class="mood-badge ${moodClass(t.mood)}">${t.mood}</span>
+    ${sim}
+  </div>`;
+}
+
+// ── RENDER ──
+function renderTop5() {
+  document.getElementById('top5-list').innerHTML =
+    DATA.top5.map((t,i) => trackRow(t, i+1, false)).join('');
+}
+
+function renderMoods() {
+  const total = Object.values(DATA.moods).reduce((a,b)=>a+b,0);
+  const cfg = [
+    {key:"Animado 🟡", color:"#f4c20d", label:"Animado"},
+    {key:"Intenso 🔴", color:"#ff6b6b", label:"Intenso"},
+    {key:"Triste 🔵",  color:"#5ba3f5", label:"Triste"},
+    {key:"Relaxado 🟢",color:"#4caf7d", label:"Relaxado"}
+  ];
+  document.getElementById('mood-grid').innerHTML = cfg.map(c => {
+    const n = DATA.moods[c.key], pct = (n/total*100).toFixed(1);
+    return `<div class="mood-card">
+      <div>
+        <div class="mood-label">${c.label}</div>
+        <div class="mood-count">${n.toLocaleString('pt-BR')} músicas · ${pct}%</div>
+        <div class="mood-bar-wrap"><div class="mood-bar" style="width:${pct}%;background:${c.color}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecs(idx) {
+  curRec = idx;
+  const ref = DATA.recRefs[idx];
+  document.getElementById('ref-name').textContent = ref.name;
+  document.getElementById('ref-artist').textContent = ref.artist;
+  document.getElementById('ref-card').querySelector('[style*="28px"]').textContent = ref.pop;
+  document.getElementById('rec-list').innerHTML =
+    DATA.recs[idx].map((t,i) => trackRow(t, i+1, true)).join('');
+}
+
+function renderPlaylist() {
+  const hideExp = document.getElementById('chk-explicit').checked;
+  let list = DATA.playlists[curGenre] || [];
+  if (curMood !== 'todos') list = list.filter(t => t.mood === curMood);
+  if (hideExp) list = list.filter(t => !t.is_explicit);
+  const el = document.getElementById('playlist-list');
+  if (list.length === 0) {
+    el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text3)">Nenhuma música encontrada com esses filtros.<br>Tente outro gênero ou humor.</div>';
+    return;
+  }
+  el.innerHTML = list.map((t,i) => trackRow(t, i+1, false)).join('');
+}
+
+function renderPodcasts() {
+  const icons = ['🎧','🎚️','🎛️','🔊','🎶','🎵'];
+  document.getElementById('pod-list').innerHTML =
+    DATA.podcasts.map((p,i) => `
+      <div class="pod-row" onclick="nowPlay('${p.track_name.replace(/'/g,"\\'")}','${p.artists.replace(/'/g,"\\'")}')">
+        <div class="pod-cover">${icons[i%icons.length]}</div>
+        <div>
+          <div class="pod-name">${p.track_name}</div>
+          <div class="pod-meta">${p.artists} · ${p.track_genre}</div>
+        </div>
+        <div class="pod-dur">${p.duration_min.toFixed(0)} min</div>
+      </div>`).join('');
+}
+
+// ── NAVIGATION ──
+function goTo(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
+
+function setPill(el, genre) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  if (genre !== 'todos') { setGenre(genre); goTo('playlist', document.querySelectorAll('.nav-item')[2]); }
+}
+
+function setGenre(g, el) {
+  curGenre = g;
+  document.querySelectorAll('#genre-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else {
+    document.querySelectorAll('#genre-filters .filter-btn').forEach(b => {
+      if (b.textContent.toLowerCase().includes(g)) b.classList.add('active');
+    });
+  }
+  renderPlaylist();
+}
+
+function setMood(m, el) {
+  curMood = m;
+  document.querySelectorAll('#mood-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderPlaylist();
+}
+
+function loadRecs(idx, el) {
+  document.querySelectorAll('[onclick^="loadRecs"]').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderRecs(idx);
+}
+
+// ── SEARCH ──
+// Todos os dados pesquisáveis reunidos em uma lista plana
+const ALL_TRACKS = [
+  ...DATA.top5,
+  ...DATA.playlists.pop,
+  ...DATA.playlists.samba,
+  ...DATA.playlists.sertanejo,
+  ...DATA.recs[0], ...DATA.recs[1], ...DATA.recs[2],
+  ...DATA.podcasts.map(p => ({track_name: p.track_name, artists: p.artists, popularity: p.popularity || 0, mood: '🎙️ Podcast', is_explicit: false, duration_min: p.duration_min}))
+];
+
+// Remove duplicatas por track_name + artists
+const SEARCH_INDEX = [];
+const seen = new Set();
+for (const t of ALL_TRACKS) {
+  const key = (t.track_name + '|' + t.artists).toLowerCase();
+  if (!seen.has(key)) { seen.add(key); SEARCH_INDEX.push(t); }
+}
+
+function handleSearch(q) {
+  const query = q.trim().toLowerCase();
+
+  // Campo vazio → volta para home
+  if (query.length === 0) {
+    goTo('home', document.querySelector('.nav-item.active') || document.querySelectorAll('.nav-item')[0]);
+    return;
+  }
+
+  // Menos de 2 chars → aguarda mais digitação
+  if (query.length < 2) return;
+
+  // Filtra por nome da música OU artista
+  const results = SEARCH_INDEX.filter(t =>
+    t.track_name.toLowerCase().includes(query) ||
+    t.artists.toLowerCase().includes(query)
+  );
+
+  // Navega para a seção de busca sem alterar o nav ativo visualmente
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-busca').classList.add('active');
+
+  const sub = document.getElementById('search-sub');
+  const list = document.getElementById('search-list');
+
+  if (results.length === 0) {
+    sub.textContent = `Nenhum resultado para "${q}" nos dados do frontend`;
+    list.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text3)">
+      Não encontrado nos dados carregados.<br>
+      <span style="font-size:12px;margin-top:8px;display:block">
+        O frontend exibe uma amostra do dataset. Para busca completa nas 89.740 músicas,
+        use o motor Python (módulo recomendador.py).
+      </span>
+    </div>`;
+    return;
+  }
+
+  sub.textContent = `${results.length} resultado${results.length > 1 ? 's' : ''} para "${q}"`;
+  list.innerHTML = results.slice(0, 20).map((t, i) => trackRow(t, i+1, false)).join('');
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  goTo('home', document.querySelectorAll('.nav-item')[0]);
+  document.querySelectorAll('.nav-item')[0].classList.add('active');
+}
+
+// ── NOW PLAYING ──
+function nowPlay(name, artist) {
+  document.getElementById('np-name').textContent = name;
+  document.getElementById('np-artist').innerHTML =
+    `<span>${artist}</span><span style="background:var(--bg4);color:var(--text3);font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600;margin-left:6px">ILUSTRATIVO</span>`;
+  playing = true;
+  document.getElementById('np-play-btn').innerHTML =
+    '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+}
+function togglePlay() {
+  playing = !playing;
+  document.getElementById('np-play-btn').innerHTML = playing
+    ? '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'
+    : '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+}
+
+// ── INIT ──
+renderTop5();
+renderMoods();
+renderRecs(0);
+renderPlaylist();
+renderPodcasts();
+</script>
+</body>
+</html>
